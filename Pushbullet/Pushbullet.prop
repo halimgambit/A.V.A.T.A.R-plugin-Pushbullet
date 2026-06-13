@@ -1,0 +1,19 @@
+{
+  "modules": { 
+    "Pushbullet": {
+      "version": "1.0",
+      "name": "Pushbullet",
+      "Access_Token": "o.FXgBiweLepDK2KUw2FIcMPOTHQxiXXXX",
+      "USER_IDEN": "ujz3lMWXXXX",
+      "DEVICE_IDEN": "ujz3lMWmXzosjvDPqaXXXX",
+      "contacts": {
+        "rafik": "+3168219XXXX",
+        "halim": "+3374622XXXX",
+        "aline": "+3374622XXXX"
+      },
+      "rules": {
+        "sendPush": ["message", "sms"]
+      }
+    }
+  }
+}

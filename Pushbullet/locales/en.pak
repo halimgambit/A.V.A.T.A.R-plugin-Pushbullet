@@ -1,0 +1,9 @@
+{
+    speech: {
+    "noContact": "I did not find this contact in your list.",
+    "askSms": "What is the message?| What is the SMS?",
+    "cancel": "cancelled|terminated",
+    "sendSms": "SMS sent to $$.",
+    "noSms": "Unable to send the SMS."
+  }
+}
