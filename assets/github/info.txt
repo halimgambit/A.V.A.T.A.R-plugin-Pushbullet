@@ -1,0 +1,3 @@
+Pushbullet connecte A.V.A.T.A.R à votre réseau mobile pour envoyer vos messages instantanément.
+
+Envoyez des SMS à vos proches par de simples commandes vocales, sans toucher à votre téléphone. Le plugin identifie automatiquement le destinataire dans votre phrase, ouvre une session d'écoute pour capturer votre message, et gère l'envoi de manière fluide tout en s'adaptant à la pièce où vous vous trouvez pour vous confirmer l'action.

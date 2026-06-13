@@ -1,0 +1,9 @@
+{
+    "speech": {
+    "noContact": "Je n'ai pas trouvé ce contact dans votre liste.",
+    "askSms": "Quel est le message ?|Quel est le sms ?",
+    "cancel": "annulé|terminé",
+    "sendSms": "SMS envoyé à $$.",
+    "noSms": "Impossible d'envoyer le SMS."
+  }
+}
