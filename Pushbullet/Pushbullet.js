@@ -1,52 +1,56 @@
 import fetch from "node-fetch";
 
 export async function init () {
-    await Avatar.lang.addPluginPak('Pushbullet');
+  await Avatar.lang.addPluginPak('Pushbullet');
 }
 
 export async function action(data, callback) {
 
-  try {
+ try {
 
-     const L = await Avatar.lang.getPak('Pushbullet', data.language);
-        
-    const tblActions = {
-      sendPush : () => Contact(data, data.client, L, callback)
-    };
-        
-    info("Pushbullet:", data.action.command, "from", data.client);
-            
-    if (tblActions[data.action.command]) {
-			await tblActions[data.action.command]();
-		}
+  const L = await Avatar.lang.getPak('Pushbullet', data.language);
+    
+  const tblActions = {
+   sendPush : () => Contact(data, data.client, L, callback)
+  };
+    
+  info("Pushbullet:", data.action.command, "from", data.client);
+      
+  if (tblActions[data.action.command]) {
+   await tblActions[data.action.command]();
+  } else {
+   callback();
+  }
 
-  } catch (err) {
-    if (data.client) Avatar.Speech.end(data.client);
-    if (err.message) error(err.message);
-  } 
-        
+ } catch (err) {
+  if (data.client) Avatar.Speech.end(data.client);
+  if (err.message) error(err.message);
+  callback();
+ } 
+    
 }
 
 const Contact = (data, client, L, callback) => {
 
-  const sentence = (data.rawSentence || data.sentence || "").toLowerCase();
-  const contacts = Config.modules.Pushbullet.contacts;
+ const sentence = (data.rawSentence || data.sentence || "").toLowerCase();
+ const contacts = Config.modules.Pushbullet.contacts;
 
-  const foundContactName = Object.keys(contacts).find(key =>
-    sentence.includes(key.toLowerCase())
-  );
+ const foundContactName = Object.keys(contacts).find(key =>
+  sentence.includes(key.toLowerCase())
+ );
 
-  if (!foundContactName) {
-    Avatar.speak(L.get("speech.noContact"), client);
-    return callback();
-  }
+ if (!foundContactName) {
+  info("Je n'ai pas trouvé ce contact dans votre liste.");
+  Avatar.speak(L.get("speech.noContact"), client);
+  return callback();
+ }
 
-  const contactObj = {
-    name: foundContactName,
-    value: contacts[foundContactName]
-  };
-  
-  askMessage(client, contactObj, L, callback);
+ const contactObj = {
+  name: foundContactName,
+  value: contacts[foundContactName]
+ };
+ 
+ askMessage(client, contactObj, L, callback);
 }
 
 const askMessage = (client, contact, L, callback) => {
@@ -60,20 +64,34 @@ const askMessage = (client, contact, L, callback) => {
     },
     15,
     async (answer, end) => {
+
+      // === LE FALLBACK CORRECT POUR LE TIMEOUT ===
+      if (!answer || answer.trim() === "" || answer === "timeout") {
+        end(client);
+        Avatar.Speech.end(client);       // FORCE le déblocage du micro du client physique !
+        info("Pushbullet : Aucun message reçu (Timeout). Libération forcée du client.");
+        return callback();               // Libère le serveur
+      }
+
       end(client);
 
       if (answer === "cancel") {
         Avatar.speak(L.get("speech.cancel"), client);
+        Avatar.Speech.end(client); // Sécurité supplémentaire si l'annulation bloque aussi
         return callback();
       }
 
       const message = answer.replace("generic:", "").trim();
 
+      if (!message) {
+        Avatar.speak(L.get("speech.cancel"), client);
+        Avatar.Speech.end(client);
+        return callback();
+      }
+
       try {
         info(`Pushbullet Debug - Envoi à: ${contact.name} (${contact.value}) - Contenu: "${message}"`);
-
         await sendSMS(contact.value, message);
-        
         Avatar.speak(L.get("speech.sendSms", contact.name), client);
       } catch (err) {
         Avatar.speak(L.get("speech.noSms"), client);
@@ -86,26 +104,26 @@ const askMessage = (client, contact, L, callback) => {
 
 const sendSMS = async (phone, message) => {
 
-  const payload = {
-    data: {
-      addresses: [phone],
-      message: message,
-      target_device_iden: Config.modules.Pushbullet.DEVICE_IDEN
-    }
-  };
-
-  const res = await fetch("https://api.pushbullet.com/v2/texts", {
-    method: "POST",
-    headers: {
-      "Access-Token": Config.modules.Pushbullet.Access_Token,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error("Pushbullet create-text error " + res.status + " : " + txt);
+ const payload = {
+  data: {
+   addresses: [phone],
+   message: message,
+   target_device_iden: Config.modules.Pushbullet.DEVICE_IDEN
   }
-  return await res.json();
+ };
+
+ const res = await fetch("https://api.pushbullet.com/v2/texts", {
+  method: "POST",
+  headers: {
+   "Access-Token": Config.modules.Pushbullet.Access_Token,
+   "Content-Type": "application/json"
+  },
+  body: JSON.stringify(payload)
+ });
+
+ if (!res.ok) {
+  const txt = await res.text();
+  throw new Error("Pushbullet create-text error " + res.status + " : " + txt);
+ }
+ return await res.json();
 }
