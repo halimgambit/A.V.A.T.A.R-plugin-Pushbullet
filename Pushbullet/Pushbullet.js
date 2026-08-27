@@ -90,6 +90,9 @@ const askMessage = (client, contact, L, callback) => {
 };
 
 const sendSMS = async (phone, message) => {
+
+    const Access_Token = Config.modules.Pushbullet.Access_Token;
+    
     const payload = {
         data: {
             addresses: [phone],
@@ -101,7 +104,7 @@ const sendSMS = async (phone, message) => {
     const res = await fetch("https://api.pushbullet.com/v2/texts", {
         method: "POST",
         headers: {
-            "Access-Token": Config.modules.Pushbullet.Access_Token,
+            "Access-Token": Access_Token,
             "Content-Type": "application/json"
         },
         body: JSON.stringify(payload)
